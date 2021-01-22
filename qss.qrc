@@ -1,0 +1,24 @@
+<RCC>
+    <qresource prefix="/Image">
+        <file>resource/close-window.png</file>
+        <file>resource/file.png</file>
+        <file>resource/green-circle.png</file>
+        <file>resource/open.png</file>
+        <file>resource/pcl.jpg</file>
+        <file>resource/red-circle.png</file>
+        <file>resource/save.png</file>
+        <file>resource/icons8-up-26.png</file>
+        <file>resource/icons8-down-26.png</file>
+        <file>Map/BaiduMap.html</file>
+        <file>resource/icons8-file-24.png</file>
+        <file>resource/icons8-start-48.png</file>
+        <file>resource/icons8-stop-48.png</file>
+        <file>resource/icons8-take-screenshot-48.png</file>
+        <file>resource/pause-squared.png</file>
+        <file>resource/icons8-about-24.png</file>
+        <file>resource/icons8-bug-24.png</file>
+        <file>resource/usb-connected.png</file>
+        <file>resource/usb-disconnected.png</file>
+        <file>resource/project-path.png</file>
+    </qresource>
+</RCC>
