@@ -33,7 +33,8 @@ SOURCES += \
         eventlabel.cpp \
     imagesolve.cpp \
     u900DataProcess/u900DataReceive.cpp \
-    u900DataProcess/u900PingTrans.cpp
+    u900DataProcess/u900PingTrans.cpp \
+    jscontext.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -48,7 +49,8 @@ HEADERS += \
         mainwindow.h \
     imagesolve.h \
     u900DataProcess/u900DataReceive.h \
-    u900DataProcess/u900PingTrans.h
+    u900DataProcess/u900PingTrans.h \
+    jscontext.h
 
 
 
@@ -70,6 +72,10 @@ LIBS += /usr/lib/x86_64-linux-gnu/libopencv_highgui.so \
 
 RESOURCES += \
     qss.qrc
+
+DISTFILES += \
+    js/msgutils.js \
+    js/qwebchannel.js
 
 
 

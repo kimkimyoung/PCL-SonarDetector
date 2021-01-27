@@ -35,6 +35,7 @@
 #include "eventlabel.h"
 #include "imagesolve.h"
 #include "yolo_v2_class.h"
+#include "jscontext.h"
 
 
 #define DETECT_SIZE 500
@@ -76,7 +77,7 @@ private:
     simulator *p_simulator;
     u900DataReceive *u900Sonar;
     QLabel *statusLabel;
-    QWebChannel *channel;
+    QWebChannel *m_channel;
 
     string cfg_file;
     string weights_file;
@@ -91,6 +92,8 @@ private:
     int detect_time = 0;
     int box_num = 0;
     int single_box_num = 0;
+    double longtitude = 108.84617;
+    double altitude = 20.624312;
 
     bool runningFlag;
     int simulation = 1;
@@ -115,7 +118,6 @@ private slots:
     void selectOffMode();
     void selectRealTimeMode();
     void simulationPause();
-
 
 signals:
     void weightSelected();

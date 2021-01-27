@@ -7,6 +7,7 @@
 #define MAP_H 1000
 #define MAP_RANGE 200 // meter
 #define MAP_RESOLUTION 0.2f; // 精度
+#define GAIN 1.0f
 #define ALFA 1 // sonar parameters
 #define GAMA 0.01f // sonar parameters
 
@@ -45,6 +46,12 @@ void MainWindow::systemManager()
     ui->statusBar->addPermanentWidget(statusLabel);
     ui->graphicsView->load(QUrl("file:///home/kim/PCL-Works/SonarDetector/Map/BaiduMap.html"));
     ui->graphicsView->show();
+
+    // web <-> qt
+    JsContext *m_jsContext = new JsContext();
+    m_channel = new QWebChannel(this);
+    m_channel->registerObject("context", (QObject*) m_jsContext);
+    ui->graphicsView->page()->setWebChannel(m_channel);
 
     connect(this, SIGNAL(weightSelected()), this, SLOT(detectorInit()));
 }
@@ -96,7 +103,6 @@ int MainWindow::systemInit()
     return 1;
 }
 
-
 /***********************************************************************************************
  *                                  sonar image function
  * *********************************************************************************************/
@@ -108,8 +114,9 @@ void MainWindow::imageDetect()
     int receiveState = 0;
     bool isFirstPing = true;
     bool enableSSimage=true;
-    Mat ssImage(WINDOW_H,WINDOW_W,CV_8UC1, cvScalar(0));
-    Mat color_ssImage(WINDOW_H,WINDOW_W,CV_8UC3, cvScalar(0));
+    Mat ssImage(WINDOW_H,WINDOW_W,CV_16UC1, cvScalar(0));
+    Mat ssImage8bit(WINDOW_H,WINDOW_W,CV_8UC3, cvScalar(0));
+    Mat color_ssImage(WINDOW_H,WINDOW_W,CV_16UC3, cvScalar(0));
     Mat rgb;
     Frame * p_frame;
     vector< vector<double> > gps_array(DETECT_SIZE, vector<double>(4)); // 存储gps信息
@@ -181,19 +188,33 @@ void MainWindow::imageDetect()
                 detectionInfoShow();
 
                 int window_w = 2 * p_ping->numSamples;
-                ssImage.create(WINDOW_H,window_w,CV_8UC1);
-                color_ssImage.create(ssImage.rows, ssImage.cols, CV_8UC3);
+                ssImage.create(WINDOW_H,window_w,CV_16UC1);
+                ssImage8bit.create(WINDOW_H,window_w,CV_8UC3);
+                color_ssImage.create(ssImage.rows, ssImage.cols, CV_16UC3);
                 Mat rawPingImg(280, window_w, CV_8UC1, cvScalar(0));
 
                 LOG(info,"Time stamp: "+std::to_string(p_ping->timeStamp)+"No: "+std::to_string(p_ping->pingNumber));
                 if(enableSSimage)
                 {
                     solver.updateMat(&ssImage);
-                    solver.copyToMat((unsigned char*)p_ping->p_data[0],ssImage.ptr<unsigned char>(0),p_ping->numSamples, p_ping->bytesPerSample);
-                    solver.copyToMat((unsigned char*)p_ping->p_data[1],ssImage.ptr<unsigned char>(0)+p_ping->numSamples, p_ping->numSamples, p_ping->bytesPerSample);
-                    solver.imageGain(ssImage, p_ping->numSamples);
+                    for(int ii=0; ii<p_ping->numSamples; ii++)
+                    {
+                        if (p_ping->bytesPerSample == 1)
+                        {
+                            ssImage.ptr<unsigned short>(0)[ii] = *((unsigned char *)(p_ping->p_data[0]) + ii) * GAIN;
+                            ssImage.ptr<unsigned short>(0)[ii+p_ping->numSamples] = *((unsigned char *)(p_ping->p_data[1]) + ii) * GAIN;
+                            solver.imageGain(ssImage, p_ping, ii);
+                        }
+                        else if (p_ping->bytesPerSample == 2)
+                        {
+                            ssImage.ptr<unsigned short>(0)[ii] = *((unsigned short *)(p_ping->p_data[0]) + ii) * GAIN;
+                            ssImage.ptr<unsigned short>(0)[ii+p_ping->numSamples] = *((unsigned short *)(p_ping->p_data[1]) + ii) * GAIN;
+                            solver.imageGain(ssImage, p_ping, ii);
+                        }
+                    }
                     solver.gray2Color(ssImage, color_ssImage);
-                    solver.siglePingShow(rawPingImg, p_ping);
+                    solver.siglePingShow(rawPingImg, ssImage);
+
                     if (id == 0) // 每DETECT_SIZE次做一次检测
                     {
                         vector<string> obj_names;
@@ -231,13 +252,15 @@ void MainWindow::imageDetect()
                         imwrite(QDir::currentPath().toStdString() + "/imageDetected.jpg", color_ssImage);
                     }
                 }
-                cvtColor(color_ssImage, rgb, COLOR_BGR2RGB);
+                color_ssImage.convertTo(ssImage8bit, CV_8UC3);
+                cvtColor(ssImage8bit, rgb, COLOR_BGR2RGB);
                 imwrite(QDir::currentPath().toStdString() + "/rgb.jpg", rgb);
+
                 QImage disImage = QImage((const uchar*)(rgb.data), rgb.cols, rgb.rows, rgb.cols*rgb.channels(), QImage::Format_RGB888);
                 QPixmap pixmap = QPixmap::fromImage(disImage);
-                pixmap.scaled(ui->label_view_sonar->width(), ui->label_view_sonar->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                QPixmap scaled = pixmap.scaled(ui->label_view_sonar->width(), ui->label_view_sonar->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
                 ui->label_view_sonar->setScaledContents(true);
-                ui->label_view_sonar->setPixmap(pixmap);
+                ui->label_view_sonar->setPixmap(scaled);
 
                 QImage rawImage = QImage((const uchar*)(rawPingImg.data), rawPingImg.cols, rawPingImg.rows, rawPingImg.cols*rawPingImg.channels(), QImage::Format_Indexed8);
                 QPixmap rawPixmap = QPixmap::fromImage(rawImage);
@@ -381,6 +404,10 @@ void MainWindow::detectionResultShow(pingFrame *p_ping, vector<bbox_t> &result_v
     }
 }
 
+/***********************************************************************************************
+ *                                        Geometry Map
+ * *********************************************************************************************/
+
 
 /***********************************************************************************************
  *                                        buttons
@@ -405,7 +432,6 @@ void MainWindow::on_btn_start_clicked()
         imageDetect();
     }
 }
-
 
 void MainWindow::on_btn_stop_clicked()
 {

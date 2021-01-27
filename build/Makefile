@@ -60,9 +60,11 @@ SOURCES       = ../main.cpp \
 		../eventlabel.cpp \
 		../imagesolve.cpp \
 		../u900DataProcess/u900DataReceive.cpp \
-		../u900DataProcess/u900PingTrans.cpp qrc_qss.cpp \
+		../u900DataProcess/u900PingTrans.cpp \
+		../jscontext.cpp qrc_qss.cpp \
 		moc_mainwindow.cpp \
-		moc_eventlabel.cpp
+		moc_eventlabel.cpp \
+		moc_jscontext.cpp
 OBJECTS       = main.o \
 		mainwindow.o \
 		frame.o \
@@ -73,10 +75,14 @@ OBJECTS       = main.o \
 		imagesolve.o \
 		u900DataReceive.o \
 		u900PingTrans.o \
+		jscontext.o \
 		qrc_qss.o \
 		moc_mainwindow.o \
-		moc_eventlabel.o
-DIST          = ../../../Qt-5.9/5.9/gcc_64/mkspecs/features/spec_pre.prf \
+		moc_eventlabel.o \
+		moc_jscontext.o
+DIST          = ../js/msgutils.js \
+		../js/qwebchannel.js \
+		../../../Qt-5.9/5.9/gcc_64/mkspecs/features/spec_pre.prf \
 		../../../Qt-5.9/5.9/gcc_64/mkspecs/common/unix.conf \
 		../../../Qt-5.9/5.9/gcc_64/mkspecs/common/linux.conf \
 		../../../Qt-5.9/5.9/gcc_64/mkspecs/common/sanitize.conf \
@@ -268,7 +274,8 @@ DIST          = ../../../Qt-5.9/5.9/gcc_64/mkspecs/features/spec_pre.prf \
 		../mainwindow.h \
 		../imagesolve.h \
 		../u900DataProcess/u900DataReceive.h \
-		../u900DataProcess/u900PingTrans.h ../main.cpp \
+		../u900DataProcess/u900PingTrans.h \
+		../jscontext.h ../main.cpp \
 		../mainwindow.cpp \
 		../XTFReader/frame.cpp \
 		../XTFReader/simulator.cpp \
@@ -277,7 +284,8 @@ DIST          = ../../../Qt-5.9/5.9/gcc_64/mkspecs/features/spec_pre.prf \
 		../eventlabel.cpp \
 		../imagesolve.cpp \
 		../u900DataProcess/u900DataReceive.cpp \
-		../u900DataProcess/u900PingTrans.cpp
+		../u900DataProcess/u900PingTrans.cpp \
+		../jscontext.cpp
 QMAKE_TARGET  = SonarDetector
 DESTDIR       = 
 TARGET        = SonarDetector
@@ -692,8 +700,8 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents ../qss.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents ../../Qt-5.9/5.9/gcc_64/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../mainwindow.h ../XTFReader/xtf.h ../XTFReader/status.h ../XTFReader/simulator.h ../XTFReader/frame.h ../XTFReader/logger.h ../XTFReader/get_value.h ../XTFReader/config.h ../eventlabel.h ../mainwindow.h ../imagesolve.h ../u900DataProcess/u900DataReceive.h ../u900DataProcess/u900PingTrans.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../main.cpp ../mainwindow.cpp ../XTFReader/frame.cpp ../XTFReader/simulator.cpp ../XTFReader/logger.cpp ../XTFReader/get_value.c ../eventlabel.cpp ../imagesolve.cpp ../u900DataProcess/u900DataReceive.cpp ../u900DataProcess/u900PingTrans.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../mainwindow.h ../XTFReader/xtf.h ../XTFReader/status.h ../XTFReader/simulator.h ../XTFReader/frame.h ../XTFReader/logger.h ../XTFReader/get_value.h ../XTFReader/config.h ../eventlabel.h ../mainwindow.h ../imagesolve.h ../u900DataProcess/u900DataReceive.h ../u900DataProcess/u900PingTrans.h ../jscontext.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../main.cpp ../mainwindow.cpp ../XTFReader/frame.cpp ../XTFReader/simulator.cpp ../XTFReader/logger.cpp ../XTFReader/get_value.c ../eventlabel.cpp ../imagesolve.cpp ../u900DataProcess/u900DataReceive.cpp ../u900DataProcess/u900PingTrans.cpp ../jscontext.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents ../mainwindow.ui $(DISTDIR)/
 
 
@@ -751,9 +759,9 @@ compiler_moc_predefs_clean:
 moc_predefs.h: ../../Qt-5.9/5.9/gcc_64/mkspecs/features/data/dummy.cpp
 	g++ -pipe -g -Wall -W -dM -E -o moc_predefs.h ../../Qt-5.9/5.9/gcc_64/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_mainwindow.cpp moc_eventlabel.cpp moc_mainwindow.cpp
+compiler_moc_header_make_all: moc_mainwindow.cpp moc_eventlabel.cpp moc_mainwindow.cpp moc_jscontext.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_mainwindow.cpp moc_eventlabel.cpp moc_mainwindow.cpp
+	-$(DEL_FILE) moc_mainwindow.cpp moc_eventlabel.cpp moc_mainwindow.cpp moc_jscontext.cpp
 moc_mainwindow.cpp: ../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QMainWindow \
 		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qmainwindow.h \
 		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qtwidgetsglobal.h \
@@ -952,6 +960,7 @@ moc_mainwindow.cpp: ../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QMainWindow \
 		../imagesolve.h \
 		../mainwindow.h \
 		../yolo_v2_class.h \
+		../jscontext.h \
 		../mainwindow.h \
 		moc_predefs.h \
 		../../Qt-5.9/5.9/gcc_64/bin/moc
@@ -1270,10 +1279,215 @@ moc_mainwindow.cpp: ../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QMainWindow \
 		../imagesolve.h \
 		../mainwindow.h \
 		../yolo_v2_class.h \
+		../jscontext.h \
 		../mainwindow.h \
 		moc_predefs.h \
 		../../Qt-5.9/5.9/gcc_64/bin/moc
 	/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/bin/moc $(DEFINES) --include ./moc_predefs.h -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/mkspecs/linux-g++ -I/home/kim/PCL-Works/SonarDetector -I/usr/include/opencv2 -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtWebEngineWidgets -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtWebEngineCore -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtQuick -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtPrintSupport -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtWidgets -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtGui -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtWebChannel -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtQml -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtNetwork -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtPositioning -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtCore -I. -I/usr/include/c++/6 -I/usr/include/x86_64-linux-gnu/c++/6 -I/usr/include/c++/6/backward -I/usr/lib/gcc/x86_64-linux-gnu/6/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/6/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include ../mainwindow.h -o moc_mainwindow.cpp
+
+moc_jscontext.cpp: ../mainwindow.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QMainWindow \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qmainwindow.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qtwidgetsglobal.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qtguiglobal.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qglobal.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qconfig-bootstrapped.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qconfig.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qtcore-config.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qsystemdetection.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qprocessordetection.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qcompilerdetection.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qtypeinfo.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qsysinfo.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qlogging.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qflags.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qatomic.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qbasicatomic.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qatomic_bootstrap.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qgenericatomic.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qatomic_cxx11.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qatomic_msvc.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qglobalstatic.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qmutex.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qnumeric.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qversiontagging.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qtgui-config.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qtwidgets-config.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qwidget.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qwindowdefs.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qobjectdefs.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qnamespace.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qobjectdefs_impl.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qwindowdefs_win.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qobject.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qstring.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qchar.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qbytearray.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qrefcount.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qarraydata.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qstringbuilder.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qlist.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qalgorithms.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qiterator.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qhashfunctions.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qpair.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qbytearraylist.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qstringlist.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qregexp.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qstringmatcher.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qcoreevent.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qscopedpointer.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qmetatype.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qvarlengtharray.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qcontainerfwd.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qobject_impl.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qmargins.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpaintdevice.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qrect.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qsize.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qpoint.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpalette.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qcolor.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qrgb.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qrgba64.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qbrush.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qvector.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qmatrix.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpolygon.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qregion.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qdatastream.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qiodevice.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qline.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qtransform.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpainterpath.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qimage.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpixelformat.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpixmap.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qsharedpointer.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qshareddata.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qhash.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qsharedpointer_impl.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qfont.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qfontmetrics.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qfontinfo.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qsizepolicy.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qcursor.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qkeysequence.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qevent.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qvariant.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qmap.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qdebug.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qtextstream.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qlocale.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qset.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qcontiguouscache.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qurl.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qurlquery.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qfile.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qfiledevice.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qvector2d.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qtouchdevice.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qtabwidget.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qicon.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QMessageBox \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qmessagebox.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qdialog.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QFileDialog \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qfiledialog.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qdir.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qfileinfo.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QToolButton \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qtoolbutton.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qabstractbutton.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QLabel \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qlabel.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qframe.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QDir \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QDateTime \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qdatetime.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QTextStream \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QProgressBar \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qprogressbar.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineWidgets/QWebEngineView \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineWidgets/qwebengineview.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpainter.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qtextoption.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpen.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qnetworkaccessmanager.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qtnetworkglobal.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qtnetwork-config.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qnetworkrequest.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QSharedDataPointer \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QString \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QUrl \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QVariant \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QVector \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QObject \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/QSslConfiguration \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qsslconfiguration.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qsslsocket.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qtcpsocket.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qabstractsocket.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qsslerror.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qsslcertificate.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qcryptographichash.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qssl.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QFlags \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/QSslPreSharedKeyAuthenticator \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qsslpresharedkeyauthenticator.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QMetaType \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineWidgets/qtwebenginewidgetsglobal.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineWidgets/qwebenginepage.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineWidgets/qwebenginecertificateerror.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineWidgets/qwebenginedownloaditem.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineCore/qwebenginecallback.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineCore/qtwebenginecoreglobal.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineCore/qwebenginehttprequest.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpagelayout.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpagesize.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebChannel/QWebChannel \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebChannel/qwebchannel.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QJsonValue \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qjsonvalue.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebChannel/qwebchannelglobal.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/QDesktopServices \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qdesktopservices.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qstandardpaths.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/QWindow \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qwindow.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QEvent \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QMargins \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QRect \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qsurface.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qsurfaceformat.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/QScreen \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qscreen.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QList \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QSize \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QSizeF \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/QTransform \
+		../XTFReader/logger.h \
+		../XTFReader/simulator.h \
+		../XTFReader/xtf.h \
+		../XTFReader/frame.h \
+		../u900DataProcess/u900DataReceive.h \
+		../u900DataProcess/u900PingTrans.h \
+		../XTFReader/get_value.h \
+		../XTFReader/status.h \
+		../XTFReader/config.h \
+		../eventlabel.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/QMouseEvent \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/QPainter \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/QPen \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QPoint \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/QList \
+		../imagesolve.h \
+		../yolo_v2_class.h \
+		../jscontext.h \
+		../jscontext.h \
+		moc_predefs.h \
+		../../Qt-5.9/5.9/gcc_64/bin/moc
+	/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/bin/moc $(DEFINES) --include ./moc_predefs.h -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/mkspecs/linux-g++ -I/home/kim/PCL-Works/SonarDetector -I/usr/include/opencv2 -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtWebEngineWidgets -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtWebEngineCore -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtQuick -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtPrintSupport -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtWidgets -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtGui -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtWebChannel -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtQml -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtNetwork -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtPositioning -I/home/kim/PCL-Works/Qt-5.9/5.9/gcc_64/include/QtCore -I. -I/usr/include/c++/6 -I/usr/include/x86_64-linux-gnu/c++/6 -I/usr/include/c++/6/backward -I/usr/lib/gcc/x86_64-linux-gnu/6/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/6/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include ../jscontext.h -o moc_jscontext.cpp
 
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
@@ -1492,6 +1706,7 @@ main.o: ../main.cpp ../mainwindow.h \
 		../../Qt-5.9/5.9/gcc_64/include/QtGui/QList \
 		../imagesolve.h \
 		../yolo_v2_class.h \
+		../jscontext.h \
 		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QApplication \
 		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qapplication.h \
 		../../Qt-5.9/5.9/gcc_64/include/QtCore/qcoreapplication.h \
@@ -1699,6 +1914,7 @@ mainwindow.o: ../mainwindow.cpp ../mainwindow.h \
 		../../Qt-5.9/5.9/gcc_64/include/QtGui/QList \
 		../imagesolve.h \
 		../yolo_v2_class.h \
+		../jscontext.h \
 		ui_mainwindow.h \
 		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QAction \
 		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qaction.h \
@@ -1986,7 +2202,8 @@ eventlabel.o: ../eventlabel.cpp ../eventlabel.h \
 		../XTFReader/status.h \
 		../XTFReader/config.h \
 		../imagesolve.h \
-		../yolo_v2_class.h
+		../yolo_v2_class.h \
+		../jscontext.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o eventlabel.o ../eventlabel.cpp
 
 imagesolve.o: ../imagesolve.cpp ../imagesolve.h \
@@ -2186,7 +2403,8 @@ imagesolve.o: ../imagesolve.cpp ../imagesolve.h \
 		../../Qt-5.9/5.9/gcc_64/include/QtGui/QPen \
 		../../Qt-5.9/5.9/gcc_64/include/QtCore/QPoint \
 		../../Qt-5.9/5.9/gcc_64/include/QtGui/QList \
-		../yolo_v2_class.h
+		../yolo_v2_class.h \
+		../jscontext.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o imagesolve.o ../imagesolve.cpp
 
 u900DataReceive.o: ../u900DataProcess/u900DataReceive.cpp ../u900DataProcess/u900DataReceive.h \
@@ -2199,8 +2417,213 @@ u900DataReceive.o: ../u900DataProcess/u900DataReceive.cpp ../u900DataProcess/u90
 		../XTFReader/logger.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o u900DataReceive.o ../u900DataProcess/u900DataReceive.cpp
 
-u900PingTrans.o: ../u900DataProcess/u900PingTrans.cpp 
+u900PingTrans.o: ../u900DataProcess/u900PingTrans.cpp ../u900DataProcess/u900PingTrans.h \
+		../XTFReader/xtf.h \
+		../XTFReader/get_value.h \
+		../XTFReader/status.h \
+		../XTFReader/config.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o u900PingTrans.o ../u900DataProcess/u900PingTrans.cpp
+
+jscontext.o: ../jscontext.cpp ../jscontext.h \
+		../mainwindow.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QMainWindow \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qmainwindow.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qtwidgetsglobal.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qtguiglobal.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qglobal.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qconfig-bootstrapped.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qconfig.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qtcore-config.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qsystemdetection.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qprocessordetection.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qcompilerdetection.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qtypeinfo.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qsysinfo.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qlogging.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qflags.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qatomic.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qbasicatomic.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qatomic_bootstrap.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qgenericatomic.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qatomic_cxx11.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qatomic_msvc.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qglobalstatic.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qmutex.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qnumeric.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qversiontagging.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qtgui-config.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qtwidgets-config.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qwidget.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qwindowdefs.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qobjectdefs.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qnamespace.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qobjectdefs_impl.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qwindowdefs_win.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qobject.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qstring.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qchar.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qbytearray.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qrefcount.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qarraydata.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qstringbuilder.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qlist.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qalgorithms.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qiterator.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qhashfunctions.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qpair.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qbytearraylist.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qstringlist.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qregexp.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qstringmatcher.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qcoreevent.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qscopedpointer.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qmetatype.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qvarlengtharray.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qcontainerfwd.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qobject_impl.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qmargins.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpaintdevice.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qrect.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qsize.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qpoint.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpalette.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qcolor.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qrgb.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qrgba64.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qbrush.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qvector.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qmatrix.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpolygon.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qregion.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qdatastream.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qiodevice.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qline.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qtransform.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpainterpath.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qimage.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpixelformat.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpixmap.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qsharedpointer.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qshareddata.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qhash.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qsharedpointer_impl.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qfont.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qfontmetrics.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qfontinfo.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qsizepolicy.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qcursor.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qkeysequence.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qevent.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qvariant.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qmap.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qdebug.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qtextstream.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qlocale.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qset.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qcontiguouscache.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qurl.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qurlquery.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qfile.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qfiledevice.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qvector2d.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qtouchdevice.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qtabwidget.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qicon.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QMessageBox \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qmessagebox.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qdialog.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QFileDialog \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qfiledialog.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qdir.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qfileinfo.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QToolButton \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qtoolbutton.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qabstractbutton.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QLabel \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qlabel.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qframe.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QDir \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QDateTime \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qdatetime.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QTextStream \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/QProgressBar \
+		../../Qt-5.9/5.9/gcc_64/include/QtWidgets/qprogressbar.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineWidgets/QWebEngineView \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineWidgets/qwebengineview.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpainter.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qtextoption.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpen.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qnetworkaccessmanager.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qtnetworkglobal.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qtnetwork-config.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qnetworkrequest.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QSharedDataPointer \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QString \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QUrl \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QVariant \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QVector \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QObject \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/QSslConfiguration \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qsslconfiguration.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qsslsocket.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qtcpsocket.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qabstractsocket.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qsslerror.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qsslcertificate.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qcryptographichash.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qssl.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QFlags \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/QSslPreSharedKeyAuthenticator \
+		../../Qt-5.9/5.9/gcc_64/include/QtNetwork/qsslpresharedkeyauthenticator.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QMetaType \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineWidgets/qtwebenginewidgetsglobal.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineWidgets/qwebenginepage.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineWidgets/qwebenginecertificateerror.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineWidgets/qwebenginedownloaditem.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineCore/qwebenginecallback.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineCore/qtwebenginecoreglobal.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebEngineCore/qwebenginehttprequest.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpagelayout.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qpagesize.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebChannel/QWebChannel \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebChannel/qwebchannel.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QJsonValue \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qjsonvalue.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtWebChannel/qwebchannelglobal.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/QDesktopServices \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qdesktopservices.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/qstandardpaths.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/QWindow \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qwindow.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QEvent \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QMargins \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QRect \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qsurface.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qsurfaceformat.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/QScreen \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/qscreen.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QList \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QSize \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QSizeF \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/QTransform \
+		../XTFReader/logger.h \
+		../XTFReader/simulator.h \
+		../XTFReader/xtf.h \
+		../XTFReader/frame.h \
+		../u900DataProcess/u900DataReceive.h \
+		../u900DataProcess/u900PingTrans.h \
+		../XTFReader/get_value.h \
+		../XTFReader/status.h \
+		../XTFReader/config.h \
+		../eventlabel.h \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/QMouseEvent \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/QPainter \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/QPen \
+		../../Qt-5.9/5.9/gcc_64/include/QtCore/QPoint \
+		../../Qt-5.9/5.9/gcc_64/include/QtGui/QList \
+		../imagesolve.h \
+		../yolo_v2_class.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o jscontext.o ../jscontext.cpp
 
 qrc_qss.o: qrc_qss.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_qss.o qrc_qss.cpp
@@ -2210,6 +2633,9 @@ moc_mainwindow.o: moc_mainwindow.cpp
 
 moc_eventlabel.o: moc_eventlabel.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_eventlabel.o moc_eventlabel.cpp
+
+moc_jscontext.o: moc_jscontext.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_jscontext.o moc_jscontext.cpp
 
 ####### Install
 

@@ -11,10 +11,12 @@
 </head>
 <body>
         <div id="allmap"></div>
+        <input type="button" value="发送消息到浏览器" onclick="onBtnSendMsg()" />
 </body>
 </html>
 <!-- <script src="baiduTilesInfo.js"></script>  -->
-<script src="qwebchannel.js"></script>
+<script src="js/qwebchannel.js"></script>
+<!--<script src="js/msgutils.js"></script>-->
 <script type="text/javascript">
     //创建和初始化地图函数：
     function initMap(){
@@ -61,5 +63,7 @@
 
 
     initMap();//创建和初始化地图
+    var context;
+
 </script>
 </html>

@@ -11,11 +11,10 @@ public:
     imageSolver();
     ~imageSolver();
 
-    void imageGain(Mat& ssImage, int numSamples);
+    void imageGain(Mat& ssImage, pingFrame* p_ping, int ii);
     void updateMat(Mat* src);
-    void copyToMat(unsigned char * src,unsigned char * dst,unsigned int len, int fBytesPerSample);
     void gray2Color(Mat& gray, Mat& color);
-    void siglePingShow(Mat rawPingImg, pingFrame *p_ping);
+    void siglePingShow(Mat& rawPingImg, Mat& ssImage);
     void imgSegment(vector<Mat> &imgSet, Mat input, int width);
 };
 
