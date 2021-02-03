@@ -17,6 +17,8 @@
 #include <QDesktopServices>
 #include <QWindow>
 #include <QScreen>
+#include <QDebug>
+#include <QThread>
 
 #include <cmath>
 #include <string>
@@ -26,7 +28,9 @@
 #include <eigen3/Eigen/StdVector>
 #include <stdlib.h>
 #include <fstream>
+#include <algorithm>
 
+#include "GeoEncoder/geoencoder.h"
 #include "XTFReader/logger.h"
 #include "XTFReader/simulator.h"
 #include "XTFReader/frame.h"
@@ -36,6 +40,8 @@
 #include "imagesolve.h"
 #include "yolo_v2_class.h"
 #include "jscontext.h"
+#include "dialog.h"
+
 
 
 #define DETECT_SIZE 500
@@ -61,27 +67,37 @@ public:
     void imageDetect();
     void systemManager();
     void toolBarManager();
+    void geometryManager();
     void infoClear();
 
     void sonarInfoShow(pingFrame *p_ping);
     void detectionInfoShow();
-    void detectionResultShow(pingFrame *p_ping, vector<bbox_t> &result_vec, int idxSeg, int lengthSeg,  vector<vector<double> > &gps_array);
+    void detectionResultShow(pingFrame *p_ping, vector<bbox_t> &result_vec, int idxSeg, int lengthSeg,  vector<vector<double> > &gps_array, int single_box_num, int idxTable);
+    void detectionResultShow(pingFrame *p_ping, vector<bbox_t> &result_vec, vector<vector<double> > &gps_array, int single_box_num, int idxTable);
 
     void gpsArrayUpdate(pingFrame *p_ping, int id, vector<vector<double> > &gps_array);
     void objNameInit(vector<string> &obj_names);
     void draw_boxes(cv::Mat mat_img, std::vector<bbox_t> result_vec, std::vector<std::string> &obj_names);
 
+    void updateObjectMat(Mat& input, std::vector<bbox_t> result_vec, vector<vector<double> > &gps_array, pingFrame *p_ping, int single_box_num, int idxTable);
+    void geometryEncoder(std::vector<bbox_t> result_vec, vector<vector<double> > &gps_array, pingFrame *p_ping, int single_box_num);
+
 private:
     Ui::MainWindow *ui;
     Detector *detector;
+    imageSolver *solver;
     simulator *p_simulator;
     u900DataReceive *u900Sonar;
+    geoEncoder *ge = new geoEncoder();
     QLabel *statusLabel;
     QWebChannel *m_channel;
+    JsContext *m_jsContext = new JsContext();
+    Dialog *dialog = new Dialog();
 
     string cfg_file;
     string weights_file;
-    string file_path = "/home/kim/PCL-Works/side_scan_mosaic/data/xtf_data_20210118/ET4125_1600kHz_xtf/ET4125_1600kHz_Line1H.xtf";
+//    string file_path = "/home/kim/PCL-Works/DataSet/SideScanSonar_DataSet/SongShanHu/cs_ssh_20210110/cs_ssh_20210110/LogData/20210110_143029_01.XTF";
+    string file_path = "/home/kim/PCL-Works/side_scan_mosaic/data/NY_HudsonRiver/000_1400.xtf";
     string names_file = "/home/kim/PCL-Works/Image_Detection/AlexeyAB_darknet/data/sonarData/sonar.names";
     QString project_path;
 
@@ -91,9 +107,18 @@ private:
     int initPingNum;
     int detect_time = 0;
     int box_num = 0;
-    int single_box_num = 0;
-    double longtitude = 108.84617;
-    double altitude = 20.624312;
+    double longtitude_init = 0;
+    double latitude_init = 0;
+    vector<Mat> object_Mat;
+    vector<double> object_Prob;
+    vector<int> object_PingNum;
+    vector<int> object_SampleNum;
+    vector<double> object_Longtitude;
+    vector<double> object_Latitude;
+    vector<string> object_direction;
+    vector<int> object_height;
+    vector<int> object_width;
+    vector<vector<Point2f>> dst_points;
 
     bool runningFlag;
     int simulation = 1;
@@ -119,9 +144,19 @@ private slots:
     void selectRealTimeMode();
     void simulationPause();
 
+    void setGPS(QString lon, QString lat);
+    void sendGPS2Web();
+    void sendObjectGPS2Web(double lon, double lat, int index);
+    void showObject(QString index);
+    void clearMarker();
+
 signals:
     void weightSelected();
     void appQuited();
+    void currentGPSSet();
+    void objectAdded(double lon, double lat, int index);
+    void objectClicked(Mat &object, double prob, int pingNum, int numsample, double lon, double lat, string direction, int height, int width, vector<Point2f> &dst);
+    void markerCleared();
 };
 
 #endif // MAINWINDOW_H

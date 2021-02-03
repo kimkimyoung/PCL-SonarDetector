@@ -15,8 +15,8 @@
 </body>
 </html>
 <!-- <script src="baiduTilesInfo.js"></script>  -->
-<script src="js/qwebchannel.js"></script>
-<!--<script src="js/msgutils.js"></script>-->
+<script src="../js/qwebchannel.js"></script>
+<!--<script src="../js/msgutils.js"></script>-->
 <script type="text/javascript">
     //创建和初始化地图函数：
     function initMap(){
@@ -61,9 +61,86 @@
         ]}));	
     }
 
+    // 增加初始Marker并以此为中心
+    function addStartPosition(x,y){
+        translateCallback = function (data){
+            if(data.status === 0) {
+                    var point = new BMap.Point(x, y);
+                    var marker = new BMap.Marker(point,{icon:new BMap.Icon("../resource/icons8-marker-48.png", new BMap.Size(48,48))},
+                                                        {offset: new BMap.Size(0, 0)});  // 创建标注
+                    // var label = new BMap.Label(x+","+y+",",{offset:new BMap.Size(30,-10)});
+                    // marker.setLabel(label);
+                    map.addOverlay(marker);
+                    map.centerAndZoom(point,19);
+    //                 marker.addEventListener("click", function(){
+    //                     alert("click marker !!!!!!!");
+    // });
+        } }
+        setTimeout(function(){  //GPS转百度坐标
+                var convertor = new BMap.Convertor();
+                var pointArr = [];
+                pointArr.push(new BMap.Point(x,y));
+                convertor.translate(pointArr, 1, 5, translateCallback)   //;
+        }, 100);
+    }
 
+    // 增加目标物Marker
+    function addObjectPosition(x,y,index){
+        translateCallback = function (data){
+            if(data.status === 0) {
+                        object_points[index] = new BMap.Point(x, y);
+                        object_markers[index] = new BMap.Marker(object_points[index],{icon:new BMap.Icon("../resource/icons8-marker-16.png", new BMap.Size(16,16))},
+                                                            {offset: new BMap.Size(0, 0)});
+                        map.addOverlay(object_markers[index]);
+                        object_markers[index].addEventListener("click", function(){
+                        getIndex(index);
+    });
+
+
+            } }
+            setTimeout(function(){  //GPS转百度坐标
+                    var convertor = new BMap.Convertor();
+                    var pointArr = [];
+                    pointArr.push(new BMap.Point(x,y));
+                    convertor.translate(pointArr, 1, 5, translateCallback)   //;
+            }, 100);
+    }
+
+    function clearALL(){
+        map.clearOverlays();
+    }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
     initMap();//创建和初始化地图
-    var context;
+
+    // 与Qt建立联系
+    new QWebChannel(qt.webChannelTransport,
+        function(channel){
+            window.bridge = channel.objects.context; // 注册
+        }
+    );
+
+    // 监听鼠标所在地图的GPS并回传
+    var updateInfo = function(lng, lat)
+    {
+        window.bridge.getCoordinates(lng, lat);
+    }
+
+    map.addEventListener("mousemove", function(e)
+    {
+        updateInfo(e.point.lng, e.point.lat);
+    });
+
+    // 监听点击目标物Marker，并回传index
+    var object_points = [];
+    var object_markers = [];
+
+    var getIndex = function(idx)
+    {
+        window.bridge.getObjectIndex(idx);
+    }
+
 
 </script>
 </html>

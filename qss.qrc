@@ -20,5 +20,7 @@
         <file>resource/usb-connected.png</file>
         <file>resource/usb-disconnected.png</file>
         <file>resource/project-path.png</file>
+        <file>resource/whale1.png</file>
+        <file>resource/whale.png</file>
     </qresource>
 </RCC>

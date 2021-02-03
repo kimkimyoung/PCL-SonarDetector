@@ -1,4 +1,5 @@
 #include "imagesolve.h"
+#include "mainwindow.h"
 
 #define COMPENSARION_VALUE 2
 #define ALFA 1 // sonar parameters
@@ -78,34 +79,6 @@ void imageSolver::siglePingShow(Mat& rawPingImg, Mat& ssImage)
         Point p2(k, 255-img8bit.at<uchar>(0, k));
         line(rawPingImg, p1, p2, cvScalar(255), 1);
     }
-
-//    for (unsigned int k = 1; k < p_ping->numSamples; k++)
-//    {
-//        Mat img8bit;
-//        ssImage.convertTo(img8bit, CV_8UC1);
-
-
-//        if (p_ping->bytesPerSample == 1)
-//        {
-//            Point p1(k-1, 255-*((unsigned char*)p_ping->p_data[0]+(k-1)*p_ping->bytesPerSample));
-//            Point p2(k, 255-*((unsigned char*)p_ping->p_data[0]+k*p_ping->bytesPerSample));
-//            line(rawPingImg, p1, p2, cvScalar(255), 1);
-//            Point p3(k+p_ping->numSamples-1, 255-*((unsigned char*)p_ping->p_data[1]+(k-1)*p_ping->bytesPerSample));
-//            Point p4(k+p_ping->numSamples, 255-*((unsigned char*)p_ping->p_data[1]+k*p_ping->bytesPerSample));
-//            line(rawPingImg, p3, p4, cvScalar(255), 1);
-//        }
-//        else if (p_ping->bytesPerSample == 2)
-//        {
-//            int ii = (int)(*((unsigned short*)p_ping->p_data[0]+(k-1)*p_ping->bytesPerSample)/65535*255);
-//            int i = 255-(*((unsigned short*)p_ping->p_data[0]+(k-1)*p_ping->bytesPerSample))/65535*255;
-//            Point p1(k-1, 255-(*((unsigned short*)p_ping->p_data[0]+(k-1)*p_ping->bytesPerSample))/65535*255);
-//            Point p2(k, 255-(*((unsigned short*)p_ping->p_data[0]+k*p_ping->bytesPerSample))/65535*255);
-//            line(rawPingImg, p1, p2, cvScalar(255), 1);
-//            Point p3(k+p_ping->numSamples-1, 255-(*((unsigned short*)p_ping->p_data[1]+(k-1)*p_ping->bytesPerSample))/65535*255);
-//            Point p4(k+p_ping->numSamples, 255-(*((unsigned short*)p_ping->p_data[1]+k*p_ping->bytesPerSample))/65535*255);
-//            line(rawPingImg, p3, p4, cvScalar(255), 1);
-//        }
-//    }
 }
 
 void imageSolver::imgSegment(vector<Mat> &imgSet, Mat input, int width)

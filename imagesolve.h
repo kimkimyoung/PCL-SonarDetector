@@ -1,8 +1,19 @@
 #ifndef IMAGESOLVE_H
 #define IMAGESOLVE_H
 
-#include "mainwindow.h"
+#include <cmath>
+#include <string>
+#include <iostream>
+#include "opencv2/opencv.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include <eigen3/Eigen/StdVector>
+#include <stdlib.h>
+#include <fstream>
+#include <vector>
+#include "XTFReader/frame.h"
 
+
+using namespace std;
 using namespace cv;
 
 class imageSolver

@@ -11,6 +11,7 @@
 #define ALFA 1 // sonar parameters
 #define GAMA 0.01f // sonar parameters
 
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -18,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     systemManager();
     toolBarManager();
+    geometryManager();
 }
 
 MainWindow::~MainWindow()
@@ -44,16 +46,8 @@ void MainWindow::systemManager()
     statusLabel = new QLabel();
     ui->statusBar->showMessage("Ready");
     ui->statusBar->addPermanentWidget(statusLabel);
-    ui->graphicsView->load(QUrl("file:///home/kim/PCL-Works/SonarDetector/Map/BaiduMap.html"));
-    ui->graphicsView->show();
 
-    // web <-> qt
-    JsContext *m_jsContext = new JsContext();
-    m_channel = new QWebChannel(this);
-    m_channel->registerObject("context", (QObject*) m_jsContext);
-    ui->graphicsView->page()->setWebChannel(m_channel);
-
-    connect(this, SIGNAL(weightSelected()), this, SLOT(detectorInit()));
+    QObject::connect(this, SIGNAL(weightSelected()), this, SLOT(detectorInit()));
 }
 
 void MainWindow::detectorInit()
@@ -109,7 +103,6 @@ int MainWindow::systemInit()
 void MainWindow::imageDetect()
 {
     active_logger = (unique_ptr<logger>) new logger(logger::log_level::debug);
-    imageSolver solver;
 
     int receiveState = 0;
     bool isFirstPing = true;
@@ -117,7 +110,7 @@ void MainWindow::imageDetect()
     Mat ssImage(WINDOW_H,WINDOW_W,CV_16UC1, cvScalar(0));
     Mat ssImage8bit(WINDOW_H,WINDOW_W,CV_8UC3, cvScalar(0));
     Mat color_ssImage(WINDOW_H,WINDOW_W,CV_16UC3, cvScalar(0));
-    Mat rgb;
+
     Frame * p_frame;
     vector< vector<double> > gps_array(DETECT_SIZE, vector<double>(4)); // 存储gps信息
     for (int i = 0; i < DETECT_SIZE; i++)
@@ -173,9 +166,17 @@ void MainWindow::imageDetect()
             if(p_frame->packetType==XTF_DATA_SIDESCAN)
             {
                 pingFrame* p_ping=(pingFrame *)p_frame;
+                int window_w = 2 * p_ping->numSamples;
                 // 检测初始ping
                 if (isFirstPing)
                 {
+                    longtitude_init = p_ping->sensorXcoordinate;
+                    latitude_init = p_ping->sensorYcoordinate;
+                    ssImage.create(WINDOW_H,window_w,CV_16UC1);
+                    ssImage8bit.create(WINDOW_H,window_w,CV_8UC3);
+                    color_ssImage.create(ssImage.rows, ssImage.cols, CV_16UC3);
+                    emit currentGPSSet();
+
                     initPingNum = p_ping->pingNumber;
                     isFirstPing = false;
                 }
@@ -187,33 +188,31 @@ void MainWindow::imageDetect()
                 sonarInfoShow(p_ping);
                 detectionInfoShow();
 
-                int window_w = 2 * p_ping->numSamples;
-                ssImage.create(WINDOW_H,window_w,CV_16UC1);
-                ssImage8bit.create(WINDOW_H,window_w,CV_8UC3);
-                color_ssImage.create(ssImage.rows, ssImage.cols, CV_16UC3);
                 Mat rawPingImg(280, window_w, CV_8UC1, cvScalar(0));
 
                 LOG(info,"Time stamp: "+std::to_string(p_ping->timeStamp)+"No: "+std::to_string(p_ping->pingNumber));
+
                 if(enableSSimage)
                 {
-                    solver.updateMat(&ssImage);
-                    for(int ii=0; ii<p_ping->numSamples; ii++)
+                    solver->updateMat(&ssImage);
+                    for(unsigned int ii=0; ii<p_ping->numSamples; ii++)
                     {
                         if (p_ping->bytesPerSample == 1)
                         {
                             ssImage.ptr<unsigned short>(0)[ii] = *((unsigned char *)(p_ping->p_data[0]) + ii) * GAIN;
                             ssImage.ptr<unsigned short>(0)[ii+p_ping->numSamples] = *((unsigned char *)(p_ping->p_data[1]) + ii) * GAIN;
-                            solver.imageGain(ssImage, p_ping, ii);
+                            solver->imageGain(ssImage, p_ping, ii);
                         }
                         else if (p_ping->bytesPerSample == 2)
                         {
                             ssImage.ptr<unsigned short>(0)[ii] = *((unsigned short *)(p_ping->p_data[0]) + ii) * GAIN;
                             ssImage.ptr<unsigned short>(0)[ii+p_ping->numSamples] = *((unsigned short *)(p_ping->p_data[1]) + ii) * GAIN;
-                            solver.imageGain(ssImage, p_ping, ii);
+                            solver->imageGain(ssImage, p_ping, ii);
                         }
                     }
-                    solver.gray2Color(ssImage, color_ssImage);
-                    solver.siglePingShow(rawPingImg, ssImage);
+                    solver->gray2Color(ssImage, color_ssImage);
+                    solver->siglePingShow(rawPingImg, ssImage);
+                    color_ssImage.convertTo(ssImage8bit, CV_8UC3);
 
                     if (id == 0) // 每DETECT_SIZE次做一次检测
                     {
@@ -223,52 +222,41 @@ void MainWindow::imageDetect()
                         Mat input, rest;
                         Rect rect_input(0, 0, window_w, DETECT_SIZE);
                         Rect rect_rest(0, DETECT_SIZE, window_w, WINDOW_H-DETECT_SIZE);
-                        input = color_ssImage(rect_input);
-                        rest = color_ssImage(rect_rest);
-                        imwrite(QDir::currentPath().toStdString() + "/input.jpg", input);
-//                        vector<bbox_t> result_vec = detector->detect(input);
-//                        draw_boxes(input, result_vec, obj_names);
-//                        vconcat(input, rest, color_ssImage);
-                        int idxSeg = 0;
-                        vector<Mat> imgSet;
-                        solver.imgSegment(imgSet, input, window_w);
-                        for (vector<Mat>::iterator iter = imgSet.begin(); iter != imgSet.end(); iter++)
+                        input = ssImage8bit(rect_input);
+                        rest = ssImage8bit(rect_rest);
+
+                        vector<bbox_t> result_vec = detector->detect(input);
+                        box_num += result_vec.size();
+                        int single_box_num = result_vec.size();
+
+                        // Geometry Encoder and Display
+                        for (int idxTable = (box_num-single_box_num); single_box_num > 0; idxTable++)
                         {
-                            Mat inputSeg = *iter;
-                            imwrite(QDir::currentPath().toStdString() + "/seg" + to_string(idxSeg) + ".jpg", inputSeg);
-                            vector<bbox_t> result_vec = detector->detect(inputSeg);
-                            draw_boxes(inputSeg, result_vec, obj_names);
-                            imwrite(QDir::currentPath().toStdString() + "/segDetected" + to_string(idxSeg) + ".jpg", inputSeg);
+                            geometryEncoder(result_vec, gps_array, p_ping, single_box_num);
+                            updateObjectMat(input, result_vec, gps_array, p_ping, single_box_num, idxTable);
+                            detectionResultShow(p_ping, result_vec, gps_array, single_box_num, idxTable);
 
-                            single_box_num = result_vec.size();
-                            box_num += single_box_num;
-                            int length = (int)(p_ping->numSamples*2 / imgSet.size());
-                            detectionResultShow(p_ping, result_vec, idxSeg, length, gps_array);
-                            idxSeg++;
+                            single_box_num--;
                         }
-                        hconcat(imgSet, input);
-                        imwrite(QDir::currentPath().toStdString() + "/inputDetected.jpg", input);
-                        vconcat(input, rest, color_ssImage);
-                        imwrite(QDir::currentPath().toStdString() + "/imageDetected.jpg", color_ssImage);
+                        draw_boxes(input, result_vec, obj_names);
+                        vconcat(input, rest, ssImage8bit);
                     }
+                    Mat rgb;
+                    cvtColor(ssImage8bit, rgb, COLOR_BGR2RGB);
+                    QImage disImage = QImage((const uchar*)(rgb.data), rgb.cols, rgb.rows, rgb.cols*rgb.channels(), QImage::Format_RGB888);
+                    QPixmap pixmap = QPixmap::fromImage(disImage);
+                    QPixmap scaled = pixmap.scaled(ui->label_view_sonar->width(), ui->label_view_sonar->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                    ui->label_view_sonar->setScaledContents(true);
+                    ui->label_view_sonar->setPixmap(scaled);
+
+                    QImage rawImage = QImage((const uchar*)(rawPingImg.data), rawPingImg.cols, rawPingImg.rows, rawPingImg.cols*rawPingImg.channels(), QImage::Format_Indexed8);
+                    QPixmap rawPixmap = QPixmap::fromImage(rawImage);
+                    rawPixmap.scaled(ui->label_view_ping->width(), ui->label_view_ping->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                    ui->label_view_ping->setScaledContents(true);
+                    ui->label_view_ping->setPixmap(rawPixmap);
+
+                    cv::waitKey(20);
                 }
-                color_ssImage.convertTo(ssImage8bit, CV_8UC3);
-                cvtColor(ssImage8bit, rgb, COLOR_BGR2RGB);
-                imwrite(QDir::currentPath().toStdString() + "/rgb.jpg", rgb);
-
-                QImage disImage = QImage((const uchar*)(rgb.data), rgb.cols, rgb.rows, rgb.cols*rgb.channels(), QImage::Format_RGB888);
-                QPixmap pixmap = QPixmap::fromImage(disImage);
-                QPixmap scaled = pixmap.scaled(ui->label_view_sonar->width(), ui->label_view_sonar->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-                ui->label_view_sonar->setScaledContents(true);
-                ui->label_view_sonar->setPixmap(scaled);
-
-                QImage rawImage = QImage((const uchar*)(rawPingImg.data), rawPingImg.cols, rawPingImg.rows, rawPingImg.cols*rawPingImg.channels(), QImage::Format_Indexed8);
-                QPixmap rawPixmap = QPixmap::fromImage(rawImage);
-                rawPixmap.scaled(ui->label_view_ping->width(), ui->label_view_ping->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-                ui->label_view_ping->setScaledContents(true);
-                ui->label_view_ping->setPixmap(rawPixmap);
-
-                cv::waitKey(20);
             }
         }
         QApplication::processEvents();
@@ -375,39 +363,273 @@ void MainWindow::detectionInfoShow()
     ui->label_detectionBoxesNumber->setNum(box_num);
 }
 
-void MainWindow::detectionResultShow(pingFrame *p_ping, vector<bbox_t> &result_vec, int idxSeg, int lengthSeg,  vector<vector<double> > &gps_array)
+void MainWindow::detectionResultShow(pingFrame *p_ping, vector<bbox_t> &result_vec, int idxSeg, int lengthSeg, vector<vector<double> > &gps_array, int single_box_num, int idxTable)
 {
-    for (int idxTable = (box_num-single_box_num); single_box_num > 0; idxTable++)
+    ui->tableWidget->insertRow(idxTable);
+    ui->tableWidget->setItem(idxTable, 0, new QTableWidgetItem(QString::number(idxTable+1)));
+    ui->tableWidget->setItem(idxTable, 1, new QTableWidgetItem(QString::number(result_vec[single_box_num-1].prob)));
+    ui->tableWidget->setItem(idxTable, 2, new QTableWidgetItem(QString::number(p_ping->pingNumber - (result_vec[single_box_num-1].y+result_vec[single_box_num-1].h/2)))); // 所在ping数
+    if (result_vec[single_box_num-1].x + idxSeg*lengthSeg > p_ping->numSamples)
     {
-        ui->tableWidget->insertRow(idxTable);
-        ui->tableWidget->setItem(idxTable, 0, new QTableWidgetItem(QString::number(idxTable+1)));
-        ui->tableWidget->setItem(idxTable, 1, new QTableWidgetItem(QString::number(result_vec[single_box_num-1].prob)));
-        ui->tableWidget->setItem(idxTable, 2, new QTableWidgetItem(QString::number((result_vec[single_box_num-1].y+result_vec[single_box_num-1].h/2) + DETECT_SIZE*(detect_time-1) + initPingNum))); // 所在ping数
-        if (result_vec[single_box_num-1].x + idxSeg*lengthSeg > p_ping->numSamples)
-        {
-            ui->tableWidget->setItem(idxTable, 3, new QTableWidgetItem(QString("Right")));
-            ui->tableWidget->setItem(idxTable, 4, new QTableWidgetItem(QString::number(result_vec[single_box_num-1].x + idxSeg*lengthSeg - p_ping->numSamples)));
-        }
-        else
-        {
-            ui->tableWidget->setItem(idxTable, 3, new QTableWidgetItem(QString("Left")));
-            ui->tableWidget->setItem(idxTable, 4, new QTableWidgetItem(QString::number(p_ping->numSamples - result_vec[single_box_num-1].x + idxSeg*lengthSeg)));
-        }
-        ui->tableWidget->setItem(idxTable, 5, new QTableWidgetItem(QString::number(result_vec[single_box_num-1].w))); // 框中心的宽
-        ui->tableWidget->setItem(idxTable, 6, new QTableWidgetItem(QString::number(result_vec[single_box_num-1].h))); // 框中心的高
-
-        int pingNum = int(result_vec[single_box_num-1].y+result_vec[single_box_num-1].h/2);
-        ui->tableWidget->setItem(idxTable, 7, new QTableWidgetItem(QString::number(gps_array[pingNum][0], 'f', 6))); // gps_x
-        ui->tableWidget->setItem(idxTable, 8, new QTableWidgetItem(QString::number(gps_array[pingNum][1], 'f', 6))); // gps_y
-
-        single_box_num--;
+        ui->tableWidget->setItem(idxTable, 3, new QTableWidgetItem(QString("Right")));
+        ui->tableWidget->setItem(idxTable, 4, new QTableWidgetItem(QString::number(result_vec[single_box_num-1].x + idxSeg*lengthSeg - p_ping->numSamples)));
     }
+    else
+    {
+        ui->tableWidget->setItem(idxTable, 3, new QTableWidgetItem(QString("Left")));
+        ui->tableWidget->setItem(idxTable, 4, new QTableWidgetItem(QString::number(p_ping->numSamples - result_vec[single_box_num-1].x + idxSeg*lengthSeg)));
+    }
+    ui->tableWidget->setItem(idxTable, 5, new QTableWidgetItem(QString::number(result_vec[single_box_num-1].w))); // 框中心的宽
+    ui->tableWidget->setItem(idxTable, 6, new QTableWidgetItem(QString::number(result_vec[single_box_num-1].h))); // 框中心的高
+
+    int pingNum = DETECT_SIZE - int(result_vec[single_box_num-1].y+result_vec[single_box_num-1].h/2);
+    ui->tableWidget->setItem(idxTable, 7, new QTableWidgetItem(QString::number(gps_array[pingNum][0], 'f', 6))); // gps_x
+    ui->tableWidget->setItem(idxTable, 8, new QTableWidgetItem(QString::number(gps_array[pingNum][1], 'f', 6))); // gps_y
+
+}
+
+void MainWindow::detectionResultShow(pingFrame *p_ping, vector<bbox_t> &result_vec, vector<vector<double> > &gps_array, int single_box_num, int idxTable)
+{
+    ui->tableWidget->insertRow(idxTable);
+    ui->tableWidget->setItem(idxTable, 0, new QTableWidgetItem(QString::number(idxTable+1)));
+    ui->tableWidget->setItem(idxTable, 1, new QTableWidgetItem(QString::number(result_vec[single_box_num-1].prob)));
+    ui->tableWidget->setItem(idxTable, 2, new QTableWidgetItem(QString::number(p_ping->pingNumber - (result_vec[single_box_num-1].y+result_vec[single_box_num-1].h/2)))); // 所在ping数
+    if (result_vec[single_box_num-1].x > p_ping->numSamples)
+    {
+        ui->tableWidget->setItem(idxTable, 3, new QTableWidgetItem(QString("Starboard"))); // right = starboard ; left = port;
+        ui->tableWidget->setItem(idxTable, 4, new QTableWidgetItem(QString::number(result_vec[single_box_num-1].x - p_ping->numSamples)));
+    }
+    else
+    {
+        ui->tableWidget->setItem(idxTable, 3, new QTableWidgetItem(QString("Port")));
+        ui->tableWidget->setItem(idxTable, 4, new QTableWidgetItem(QString::number(p_ping->numSamples - result_vec[single_box_num-1].x)));
+    }
+    ui->tableWidget->setItem(idxTable, 5, new QTableWidgetItem(QString::number(result_vec[single_box_num-1].w))); // 框中心的宽
+    ui->tableWidget->setItem(idxTable, 6, new QTableWidgetItem(QString::number(result_vec[single_box_num-1].h))); // 框中心的高
+
+    int pingNum = DETECT_SIZE - int(result_vec[single_box_num-1].y+result_vec[single_box_num-1].h/2);
+    ui->tableWidget->setItem(idxTable, 7, new QTableWidgetItem(QString::number(gps_array[pingNum][0], 'f', 6))); // gps_x
+    ui->tableWidget->setItem(idxTable, 8, new QTableWidgetItem(QString::number(gps_array[pingNum][1], 'f', 6))); // gps_y
+
 }
 
 /***********************************************************************************************
  *                                        Geometry Map
  * *********************************************************************************************/
+void MainWindow::geometryManager()
+{
+    ui->graphicsView->load(QUrl("file:///home/kim/PCL-Works/SonarDetector/Map/BaiduMap.html"));
+    ui->graphicsView->show();
 
+    // web <-> qt
+    m_channel = new QWebChannel(this);
+    m_channel->registerObject("context", (QObject*) m_jsContext);
+    ui->graphicsView->page()->setWebChannel(m_channel);
+
+    QObject::connect(m_jsContext, SIGNAL(CoordinatesGet(QString,QString)), this, SLOT(setGPS(QString,QString)));
+    QObject::connect(m_jsContext, SIGNAL(ObjectIndexGet(QString)), this, SLOT(showObject(QString)));
+//    QObject::connect(this, SIGNAL(objectAdded(double,double,int)), this, SLOT(sendObjectGPS2Web(double,double,int)));
+    QObject::connect(this, SIGNAL(currentGPSSet()), this, SLOT(sendGPS2Web()));
+    QObject::connect(this, SIGNAL(objectClicked(Mat&, double, int, int, double, double, string, int, int, vector<Point2f>&)),
+                     dialog, SLOT(dialogShow(Mat&, double, int, int, double, double, string, int, int, vector<Point2f>&)));
+    QObject::connect(this, SIGNAL(markerCleared()), this, SLOT(clearMarker()));
+}
+
+void MainWindow::clearMarker()
+{
+    QString cmd = QString("clearALL()");
+    ui->graphicsView->page()->runJavaScript(cmd);
+}
+
+void MainWindow::setGPS(QString lon, QString lat)
+{
+    ui->label_gps->setText("("+lon+","+lat+")");
+}
+
+void MainWindow::showObject(QString index)
+{
+    int idx = index.toInt();
+    emit objectClicked(object_Mat[idx], object_Prob[idx], object_PingNum[idx], object_SampleNum[idx], object_Longtitude[idx], object_Latitude[idx], object_direction[idx],
+                       object_height[idx], object_width[idx], dst_points[idx]);
+}
+
+void MainWindow::sendGPS2Web()
+{
+    if (longtitude_init != 0 && latitude_init != 0)
+    {
+        QString cmd = QString("addStartPosition(%0, %1)")
+                .arg(QString::number(longtitude_init, 'f', 6)).arg(QString::number(latitude_init, 'f', 6));
+        ui->graphicsView->page()->runJavaScript(cmd);
+    }
+}
+
+void MainWindow::sendObjectGPS2Web(double lon, double lat, int index)
+{
+    if (lon != 0 && lat != 0)
+    {
+        QString cmd = QString("addObjectPosition(%0, %1, %2)")
+                .arg(QString::number(lon, 'f', 6)).arg(QString::number(lat, 'f', 6)).arg(QString::number(index));
+        ui->graphicsView->page()->runJavaScript(cmd);
+    }
+}
+
+void MainWindow::updateObjectMat(Mat &input, std::vector<bbox_t> result_vec, vector<vector<double> > &gps_array, pingFrame *p_ping, int single_box_num, int idxTable)
+{
+    if ((result_vec[single_box_num-1].x + result_vec[single_box_num-1].w) > input.cols )
+    {
+        result_vec[single_box_num-1].w = input.cols - result_vec[single_box_num-1].x;
+    }
+
+    if ((result_vec[single_box_num-1].y + result_vec[single_box_num-1].h) > input.rows )
+    {
+        result_vec[single_box_num-1].h = input.rows - result_vec[single_box_num-1].y;
+    }
+
+    Rect box(result_vec[single_box_num-1].x, result_vec[single_box_num-1].y, result_vec[single_box_num-1].w, result_vec[single_box_num-1].h);
+    Mat boxArea = input(box).clone();
+    int pingNum = DETECT_SIZE - int(result_vec[single_box_num-1].y+result_vec[single_box_num-1].h/2);
+
+    object_Mat.push_back(boxArea);
+    object_Prob.push_back(result_vec[single_box_num-1].prob);
+    if (result_vec[single_box_num-1].x > p_ping->numSamples)
+    {
+        object_SampleNum.push_back(result_vec[single_box_num-1].x - p_ping->numSamples);
+        object_direction.push_back("Starboard");
+    }
+    else
+    {
+        object_SampleNum.push_back(p_ping->numSamples - result_vec[single_box_num-1].x);
+        object_direction.push_back("Port");
+    }
+    object_PingNum.push_back(p_ping->pingNumber - (result_vec[single_box_num-1].y+result_vec[single_box_num-1].h/2));
+    object_Longtitude.push_back(gps_array[pingNum][0]);
+    object_Latitude.push_back(gps_array[pingNum][1]);
+
+    sendObjectGPS2Web(gps_array[pingNum][0], gps_array[pingNum][1], idxTable);
+    QThread::msleep(180); // to be optimized
+
+}
+
+void MainWindow::geometryEncoder(std::vector<bbox_t> result_vec, vector<vector<double> > &gps_array, pingFrame *p_ping, int single_box_num)
+{
+    int curPingNumUp = int(DETECT_SIZE-(result_vec[single_box_num-1].y + result_vec[single_box_num-1].h));
+    int curPingNumDown = int(DETECT_SIZE- result_vec[single_box_num-1].y - 1);
+
+    vector<double> upFrontGPS, upBehindGPS, upMidGPS;
+    vector<double> downFrontGPS, downBehindGPS, downMidGPS;
+    if (curPingNumUp == 0)
+    {
+        upFrontGPS = gps_array[curPingNumUp];
+        upMidGPS = gps_array[curPingNumUp];
+        upBehindGPS = gps_array[curPingNumUp+1];
+        downFrontGPS = gps_array[curPingNumDown-1];
+        downMidGPS = gps_array[curPingNumDown];
+        downBehindGPS = gps_array[curPingNumDown+1];
+    }
+    else if (curPingNumDown == DETECT_SIZE-1)
+    {
+        upFrontGPS = gps_array[curPingNumUp-1];
+        upMidGPS = gps_array[curPingNumUp];
+        upBehindGPS = gps_array[curPingNumUp+1];
+        downFrontGPS = gps_array[curPingNumDown-1];
+        downMidGPS = gps_array[curPingNumDown];
+        downBehindGPS = gps_array[curPingNumDown];
+    }
+    else
+    {
+        upFrontGPS = gps_array[curPingNumUp-1];
+        upMidGPS = gps_array[curPingNumUp];
+        upBehindGPS = gps_array[curPingNumUp+1];
+        downFrontGPS = gps_array[curPingNumDown-1];
+        downMidGPS = gps_array[curPingNumDown];
+        downBehindGPS = gps_array[curPingNumDown+1];
+    }
+
+    double up = sqrt((upBehindGPS[0]-upFrontGPS[0])*(upBehindGPS[0]-upFrontGPS[0]) + (upBehindGPS[1]-upFrontGPS[1])*(upBehindGPS[1]-upFrontGPS[1]));
+    double down = sqrt((downBehindGPS[0]-downFrontGPS[0])*(downBehindGPS[0]-downFrontGPS[0]) + (downBehindGPS[1]-downFrontGPS[1])*(downBehindGPS[1]-downFrontGPS[1]));
+
+    Eigen::Vector2d vecUp;
+    Eigen::Vector2d vecDown;
+    vecUp << (upBehindGPS[0]-upFrontGPS[0])/up, (upBehindGPS[1]-upFrontGPS[1])/up;
+    vecDown << (downBehindGPS[0]-downFrontGPS[0])/up, (downBehindGPS[1]-downFrontGPS[1])/down;
+
+    int point_pixel[4];
+    float point_meter[4];
+    if (result_vec[single_box_num-1].x > p_ping->numSamples)
+    {
+        point_pixel[0] = int(result_vec[single_box_num-1].x - p_ping->numSamples);
+        point_pixel[1] = int(result_vec[single_box_num-1].x - p_ping->numSamples + result_vec[single_box_num-1].w);
+        point_pixel[2] = int(result_vec[single_box_num-1].x - p_ping->numSamples);
+        point_pixel[3] = int(result_vec[single_box_num-1].x - p_ping->numSamples + result_vec[single_box_num-1].w);
+    }
+    else
+    {
+        point_pixel[0] = int(p_ping->numSamples - result_vec[single_box_num-1].x);
+        point_pixel[1] = int(p_ping->numSamples - result_vec[single_box_num-1].x - result_vec[single_box_num-1].w);
+        point_pixel[2] = int(p_ping->numSamples - result_vec[single_box_num-1].x);
+        point_pixel[3] = int(p_ping->numSamples - result_vec[single_box_num-1].x - result_vec[single_box_num-1].w);
+    }
+
+    point_meter[0] = gps_array[curPingNumDown][2]/gps_array[curPingNumDown][3] * point_pixel[0];
+    point_meter[1] = gps_array[curPingNumDown][2]/gps_array[curPingNumDown][3] * point_pixel[1];
+    point_meter[2] = gps_array[curPingNumUp][2]/gps_array[curPingNumUp][3] * point_pixel[2];
+    point_meter[3] = gps_array[curPingNumUp][2]/gps_array[curPingNumUp][3] * point_pixel[3];
+
+    Eigen::Vector2d pos1, pos2, pos3, pos4;
+    pos1 = ge->pjEcho(vecDown, gps_array[curPingNumDown][0], gps_array[curPingNumDown][1], point_meter[0]);
+    pos2 = ge->pjEcho(vecDown, gps_array[curPingNumDown][0], gps_array[curPingNumDown][1], point_meter[1]);
+    pos3 = ge->pjEcho(vecUp, gps_array[curPingNumUp][0], gps_array[curPingNumUp][1], point_meter[2]);
+    pos4 = ge->pjEcho(vecUp, gps_array[curPingNumUp][0], gps_array[curPingNumUp][1], point_meter[3]);
+
+    vector<int> e1, e2, e3;
+    for (int i = 0; i < 2; i++)
+    {
+        float a = (pos2[i] - pos1[i])/MAP_RESOLUTION;
+        float b = (pos3[i] - pos1[i])/MAP_RESOLUTION;
+        float c = (pos4[i] - pos1[i])/MAP_RESOLUTION;
+        e1.push_back(a);
+        e2.push_back(b);
+        e3.push_back(c);
+    }
+
+    int height, width;
+    int x, y;
+    if (e1[1] < 0)
+    {
+        vector<int> comp{e2[1], e3[1]};
+        height = -e1[1] + *std::max_element(comp.begin(), comp.end());
+        y = -e1[1];
+    }
+    else
+    {
+        vector<int> comp{e1[1], e2[1], e3[1]};
+        height = *std::max_element(comp.begin(), comp.end());
+        y = 0;
+    }
+
+    if (e2[0] < 0)
+    {
+        vector<int> comp{e1[0], e3[0]-e2[0], std::abs(e1[0]-e2[0])};
+        x = -e2[0];
+        width = *std::max(comp.begin(), comp.end());
+    }
+    else
+    {
+        vector<int> comp{e1[0], e3[0]};
+        x = 0;
+        width = *std::max_element(comp.begin(), comp.end());
+    }
+
+    vector<Point2f> dst_points_array;
+    dst_points_array.push_back(Point2f(x, y));
+    dst_points_array.push_back(Point2f(x+e1[0], y+e1[1]));
+    dst_points_array.push_back(Point2f(x+e3[0], y+e3[1]));
+    dst_points_array.push_back(Point2f(x+e2[0], y+e2[1]));
+    dst_points.push_back(dst_points_array);
+
+    object_height.push_back(height);
+    object_width.push_back(width);
+}
 
 /***********************************************************************************************
  *                                        buttons
@@ -445,6 +667,8 @@ void MainWindow::on_btn_stop_clicked()
     ui->actionSpeed_Up->setEnabled(0);
     ui->actionReal_TIme->setEnabled(1);
     ui->actionSimulation->setEnabled(1);
+
+    emit markerCleared();
 }
 
 void MainWindow::on_btn_connect_clicked()

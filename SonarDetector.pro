@@ -34,7 +34,9 @@ SOURCES += \
     imagesolve.cpp \
     u900DataProcess/u900DataReceive.cpp \
     u900DataProcess/u900PingTrans.cpp \
-    jscontext.cpp
+    jscontext.cpp \
+    dialog.cpp \
+    GeoEncoder/geoencoder.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -50,12 +52,15 @@ HEADERS += \
     imagesolve.h \
     u900DataProcess/u900DataReceive.h \
     u900DataProcess/u900PingTrans.h \
-    jscontext.h
+    jscontext.h \
+    dialog.h \
+    GeoEncoder/geoencoder.h
 
 
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    dialog.ui
 
 INCLUDEPATH +=  /usr/include/opencv2
                 /usr/include/opencv

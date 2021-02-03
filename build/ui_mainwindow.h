@@ -126,8 +126,13 @@ public:
     QLabel *label_view_ping;
     QLabel *label_view_sonar;
     QGroupBox *GroupBox_GeoMap;
-    QGridLayout *gridLayout_2;
+    QVBoxLayout *verticalLayout_6;
     QWebEngineView *graphicsView;
+    QHBoxLayout *horizontalLayout_22;
+    QHBoxLayout *horizontalLayout_20;
+    QSpacerItem *horizontalSpacer_11;
+    QHBoxLayout *horizontalLayout_21;
+    QLabel *label_gps;
     QGroupBox *GroupBox_Detection;
     QVBoxLayout *verticalLayout_4;
     QSplitter *splitter;
@@ -161,7 +166,7 @@ public:
             MainWindow->setObjectName(QStringLiteral("MainWindow"));
         MainWindow->resize(1700, 1172);
         QIcon icon;
-        icon.addFile(QStringLiteral(":/Image/resource/pcl.jpg"), QSize(), QIcon::Normal, QIcon::Off);
+        icon.addFile(QStringLiteral(":/Image/resource/whale.png"), QSize(), QIcon::Normal, QIcon::Off);
         MainWindow->setWindowIcon(icon);
         actionOpen_File = new QAction(MainWindow);
         actionOpen_File->setObjectName(QStringLiteral("actionOpen_File"));
@@ -723,16 +728,49 @@ public:
         GroupBox_GeoMap->setObjectName(QStringLiteral("GroupBox_GeoMap"));
         GroupBox_GeoMap->setMinimumSize(QSize(0, 0));
         GroupBox_GeoMap->setFlat(false);
-        gridLayout_2 = new QGridLayout(GroupBox_GeoMap);
-        gridLayout_2->setSpacing(6);
-        gridLayout_2->setContentsMargins(11, 11, 11, 11);
-        gridLayout_2->setObjectName(QStringLiteral("gridLayout_2"));
+        verticalLayout_6 = new QVBoxLayout(GroupBox_GeoMap);
+        verticalLayout_6->setSpacing(6);
+        verticalLayout_6->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_6->setObjectName(QStringLiteral("verticalLayout_6"));
         graphicsView = new QWebEngineView(GroupBox_GeoMap);
         graphicsView->setObjectName(QStringLiteral("graphicsView"));
         graphicsView->setLayoutDirection(Qt::LeftToRight);
+        verticalLayout_6->addWidget(graphicsView);
+
+        horizontalLayout_22 = new QHBoxLayout();
+        horizontalLayout_22->setSpacing(6);
+        horizontalLayout_22->setObjectName(QStringLiteral("horizontalLayout_22"));
+        horizontalLayout_20 = new QHBoxLayout();
+        horizontalLayout_20->setSpacing(6);
+        horizontalLayout_20->setObjectName(QStringLiteral("horizontalLayout_20"));
+        horizontalSpacer_11 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_20->addItem(horizontalSpacer_11);
 
 
-        gridLayout_2->addWidget(graphicsView, 0, 0, 1, 1);
+        horizontalLayout_22->addLayout(horizontalLayout_20);
+
+        horizontalLayout_21 = new QHBoxLayout();
+        horizontalLayout_21->setSpacing(6);
+        horizontalLayout_21->setObjectName(QStringLiteral("horizontalLayout_21"));
+        label_gps = new QLabel(GroupBox_GeoMap);
+        label_gps->setObjectName(QStringLiteral("label_gps"));
+        QSizePolicy sizePolicy2(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        sizePolicy2.setHorizontalStretch(0);
+        sizePolicy2.setVerticalStretch(0);
+        sizePolicy2.setHeightForWidth(label_gps->sizePolicy().hasHeightForWidth());
+        label_gps->setSizePolicy(sizePolicy2);
+        label_gps->setMinimumSize(QSize(0, 0));
+        label_gps->setStyleSheet(QStringLiteral(""));
+        label_gps->setFrameShape(QFrame::NoFrame);
+
+        horizontalLayout_21->addWidget(label_gps);
+
+
+        horizontalLayout_22->addLayout(horizontalLayout_21);
+
+
+        verticalLayout_6->addLayout(horizontalLayout_22);
 
 
         gridLayout->addWidget(GroupBox_GeoMap, 1, 1, 2, 1);
@@ -774,11 +812,11 @@ public:
         horizontalLayout_19->setObjectName(QStringLiteral("horizontalLayout_19"));
         label_31 = new QLabel(GroupBox_Detection);
         label_31->setObjectName(QStringLiteral("label_31"));
-        QSizePolicy sizePolicy2(QSizePolicy::Fixed, QSizePolicy::Fixed);
-        sizePolicy2.setHorizontalStretch(0);
-        sizePolicy2.setVerticalStretch(0);
-        sizePolicy2.setHeightForWidth(label_31->sizePolicy().hasHeightForWidth());
-        label_31->setSizePolicy(sizePolicy2);
+        QSizePolicy sizePolicy3(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        sizePolicy3.setHorizontalStretch(0);
+        sizePolicy3.setVerticalStretch(0);
+        sizePolicy3.setHeightForWidth(label_31->sizePolicy().hasHeightForWidth());
+        label_31->setSizePolicy(sizePolicy3);
         label_31->setMinimumSize(QSize(125, 20));
 
         horizontalLayout_19->addWidget(label_31);
@@ -789,8 +827,8 @@ public:
 
         label_detectionCounts = new QLabel(GroupBox_Detection);
         label_detectionCounts->setObjectName(QStringLiteral("label_detectionCounts"));
-        sizePolicy2.setHeightForWidth(label_detectionCounts->sizePolicy().hasHeightForWidth());
-        label_detectionCounts->setSizePolicy(sizePolicy2);
+        sizePolicy3.setHeightForWidth(label_detectionCounts->sizePolicy().hasHeightForWidth());
+        label_detectionCounts->setSizePolicy(sizePolicy3);
         label_detectionCounts->setMinimumSize(QSize(70, 20));
         label_detectionCounts->setMaximumSize(QSize(16777215, 30));
         label_detectionCounts->setStyleSheet(QStringLiteral("background-color: rgb(255, 255, 255);"));
@@ -806,8 +844,8 @@ public:
 
         label_32 = new QLabel(GroupBox_Detection);
         label_32->setObjectName(QStringLiteral("label_32"));
-        sizePolicy2.setHeightForWidth(label_32->sizePolicy().hasHeightForWidth());
-        label_32->setSizePolicy(sizePolicy2);
+        sizePolicy3.setHeightForWidth(label_32->sizePolicy().hasHeightForWidth());
+        label_32->setSizePolicy(sizePolicy3);
         label_32->setMinimumSize(QSize(170, 20));
 
         horizontalLayout_19->addWidget(label_32);
@@ -818,8 +856,8 @@ public:
 
         label_detectionBoxesNumber = new QLabel(GroupBox_Detection);
         label_detectionBoxesNumber->setObjectName(QStringLiteral("label_detectionBoxesNumber"));
-        sizePolicy2.setHeightForWidth(label_detectionBoxesNumber->sizePolicy().hasHeightForWidth());
-        label_detectionBoxesNumber->setSizePolicy(sizePolicy2);
+        sizePolicy3.setHeightForWidth(label_detectionBoxesNumber->sizePolicy().hasHeightForWidth());
+        label_detectionBoxesNumber->setSizePolicy(sizePolicy3);
         label_detectionBoxesNumber->setMinimumSize(QSize(70, 20));
         label_detectionBoxesNumber->setMaximumSize(QSize(16777215, 30));
         label_detectionBoxesNumber->setStyleSheet(QStringLiteral("background-color: rgb(255, 255, 255);"));
@@ -1017,6 +1055,7 @@ public:
         label_view_ping->setText(QString());
         label_view_sonar->setText(QString());
         GroupBox_GeoMap->setTitle(QApplication::translate("MainWindow", "GeoDecoder Map", Q_NULLPTR));
+        label_gps->setText(QString());
         GroupBox_Detection->setTitle(QApplication::translate("MainWindow", "Detection Info", Q_NULLPTR));
         radioButton_fast->setText(QApplication::translate("MainWindow", "Fast Detect", Q_NULLPTR));
         radioButton_precise->setText(QApplication::translate("MainWindow", "Precise Detect", Q_NULLPTR));
@@ -1039,11 +1078,11 @@ public:
         QTableWidgetItem *___qtablewidgetitem5 = tableWidget->horizontalHeaderItem(5);
         ___qtablewidgetitem5->setText(QApplication::translate("MainWindow", "Box Width", Q_NULLPTR));
         QTableWidgetItem *___qtablewidgetitem6 = tableWidget->horizontalHeaderItem(6);
-        ___qtablewidgetitem6->setText(QApplication::translate("MainWindow", "New Column", Q_NULLPTR));
+        ___qtablewidgetitem6->setText(QApplication::translate("MainWindow", "Box Height", Q_NULLPTR));
         QTableWidgetItem *___qtablewidgetitem7 = tableWidget->horizontalHeaderItem(7);
-        ___qtablewidgetitem7->setText(QApplication::translate("MainWindow", "GPS Xcoord", Q_NULLPTR));
+        ___qtablewidgetitem7->setText(QApplication::translate("MainWindow", "Longtitude", Q_NULLPTR));
         QTableWidgetItem *___qtablewidgetitem8 = tableWidget->horizontalHeaderItem(8);
-        ___qtablewidgetitem8->setText(QApplication::translate("MainWindow", "GPS Ycoord", Q_NULLPTR));
+        ___qtablewidgetitem8->setText(QApplication::translate("MainWindow", "Latitude", Q_NULLPTR));
         menuFile->setTitle(QApplication::translate("MainWindow", "File", Q_NULLPTR));
         menuEdit->setTitle(QApplication::translate("MainWindow", "Edit", Q_NULLPTR));
         menuSelect_Mode->setTitle(QApplication::translate("MainWindow", "Select Mode", Q_NULLPTR));
