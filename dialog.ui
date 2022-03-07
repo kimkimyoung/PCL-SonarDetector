@@ -11,17 +11,17 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Target Object</string>
+   <string>目标物</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="GeEncoded">
       <attribute name="title">
-       <string>GeEncoded</string>
+       <string>经编码图像</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_3">
        <item row="0" column="0">
@@ -41,7 +41,7 @@
      </widget>
      <widget class="QWidget" name="Origin">
       <attribute name="title">
-       <string>Origin</string>
+       <string>原图</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_2">
        <item row="0" column="0">
@@ -64,7 +64,7 @@
      </widget>
      <widget class="QWidget" name="Info">
       <attribute name="title">
-       <string>Info</string>
+       <string>信息</string>
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
@@ -72,42 +72,42 @@
          <item>
           <widget class="QLabel" name="Confidence">
            <property name="text">
-            <string>Confidence:</string>
+            <string>置信度</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QLabel" name="PingNumber">
            <property name="text">
-            <string>Ping Number:</string>
+            <string>帧号</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QLabel" name="NumberSample">
            <property name="text">
-            <string>Number Sample:</string>
+            <string>采样点</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QLabel" name="label">
            <property name="text">
-            <string>Direction:</string>
+            <string>舷向</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QLabel" name="Longtitude">
            <property name="text">
-            <string>Longtitude:</string>
+            <string>经度</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QLabel" name="Latitude">
            <property name="text">
-            <string>Latitude:</string>
+            <string>纬度</string>
            </property>
           </widget>
          </item>

@@ -122,7 +122,8 @@ private:
 
     bool runningFlag;
     int simulation = 1;
-
+    vector<double> coordX;
+    vector<double> coordY;
 private slots:
     void detectorInit();
 

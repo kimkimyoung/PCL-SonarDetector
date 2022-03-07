@@ -20,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent) :
     systemManager();
     toolBarManager();
     geometryManager();
+
 }
 
 MainWindow::~MainWindow()
@@ -167,11 +168,15 @@ void MainWindow::imageDetect()
             {
                 pingFrame* p_ping=(pingFrame *)p_frame;
                 int window_w = 2 * p_ping->numSamples;
+                coordX.push_back(p_ping->sensorXcoordinate);
+                coordY.push_back(p_ping->sensorYcoordinate);
                 // 检测初始ping
                 if (isFirstPing)
                 {
                     longtitude_init = p_ping->sensorXcoordinate;
                     latitude_init = p_ping->sensorYcoordinate;
+
+
                     ssImage.create(WINDOW_H,window_w,CV_16UC1);
                     ssImage8bit.create(WINDOW_H,window_w,CV_8UC3);
                     color_ssImage.create(ssImage.rows, ssImage.cols, CV_16UC3);
@@ -213,7 +218,6 @@ void MainWindow::imageDetect()
                     solver->gray2Color(ssImage, color_ssImage);
                     solver->siglePingShow(rawPingImg, ssImage);
                     color_ssImage.convertTo(ssImage8bit, CV_8UC3);
-
                     if (id == 0) // 每DETECT_SIZE次做一次检测
                     {
                         vector<string> obj_names;
@@ -873,6 +877,16 @@ void MainWindow::screenShot()
     {
         QMessageBox::about(NULL, "ERROR", "Please Select Project Path");
     }
+
+    std::ofstream fout("/home/kim/Desktop/gps.txt", ios::app);
+    fout << setprecision(9);
+    fout << "gpsx" << '\n';
+    for(auto const& x : coordX)
+        fout << x << '\n';
+    fout << "gpsy" << '\n';
+    for(auto const& y : coordY)
+        fout << y << '\n';
+    fout.close();
 }
 
 void MainWindow::selectProjPath()

@@ -179,7 +179,7 @@ public:
 
         retranslateUi(Dialog);
 
-        tabWidget->setCurrentIndex(0);
+        tabWidget->setCurrentIndex(2);
 
 
         QMetaObject::connectSlotsByName(Dialog);
@@ -187,24 +187,24 @@ public:
 
     void retranslateUi(QDialog *Dialog)
     {
-        Dialog->setWindowTitle(QApplication::translate("Dialog", "Target Object", Q_NULLPTR));
+        Dialog->setWindowTitle(QApplication::translate("Dialog", "\347\233\256\346\240\207\347\211\251", Q_NULLPTR));
         label_geo->setText(QString());
-        tabWidget->setTabText(tabWidget->indexOf(GeEncoded), QApplication::translate("Dialog", "GeEncoded", Q_NULLPTR));
+        tabWidget->setTabText(tabWidget->indexOf(GeEncoded), QApplication::translate("Dialog", "\347\273\217\347\274\226\347\240\201\345\233\276\345\203\217", Q_NULLPTR));
         label_view->setText(QString());
-        tabWidget->setTabText(tabWidget->indexOf(Origin), QApplication::translate("Dialog", "Origin", Q_NULLPTR));
-        Confidence->setText(QApplication::translate("Dialog", "Confidence:", Q_NULLPTR));
-        PingNumber->setText(QApplication::translate("Dialog", "Ping Number:", Q_NULLPTR));
-        NumberSample->setText(QApplication::translate("Dialog", "Number Sample:", Q_NULLPTR));
-        label->setText(QApplication::translate("Dialog", "Direction:", Q_NULLPTR));
-        Longtitude->setText(QApplication::translate("Dialog", "Longtitude:", Q_NULLPTR));
-        Latitude->setText(QApplication::translate("Dialog", "Latitude:", Q_NULLPTR));
+        tabWidget->setTabText(tabWidget->indexOf(Origin), QApplication::translate("Dialog", "\345\216\237\345\233\276", Q_NULLPTR));
+        Confidence->setText(QApplication::translate("Dialog", "\347\275\256\344\277\241\345\272\246", Q_NULLPTR));
+        PingNumber->setText(QApplication::translate("Dialog", "\345\270\247\345\217\267", Q_NULLPTR));
+        NumberSample->setText(QApplication::translate("Dialog", "\351\207\207\346\240\267\347\202\271", Q_NULLPTR));
+        label->setText(QApplication::translate("Dialog", "\350\210\267\345\220\221", Q_NULLPTR));
+        Longtitude->setText(QApplication::translate("Dialog", "\347\273\217\345\272\246", Q_NULLPTR));
+        Latitude->setText(QApplication::translate("Dialog", "\347\272\254\345\272\246", Q_NULLPTR));
         lable_confidence->setText(QString());
         label_pingnumber->setText(QString());
         label_numbersample->setText(QString());
         label_direction->setText(QString());
         label_longtitude->setText(QString());
         label_latitude->setText(QString());
-        tabWidget->setTabText(tabWidget->indexOf(Info), QApplication::translate("Dialog", "Info", Q_NULLPTR));
+        tabWidget->setTabText(tabWidget->indexOf(Info), QApplication::translate("Dialog", "\344\277\241\346\201\257", Q_NULLPTR));
     } // retranslateUi
 
 };

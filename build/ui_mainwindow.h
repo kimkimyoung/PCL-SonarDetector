@@ -735,6 +735,7 @@ public:
         graphicsView = new QWebEngineView(GroupBox_GeoMap);
         graphicsView->setObjectName(QStringLiteral("graphicsView"));
         graphicsView->setLayoutDirection(Qt::LeftToRight);
+
         verticalLayout_6->addWidget(graphicsView);
 
         horizontalLayout_22 = new QHBoxLayout();
